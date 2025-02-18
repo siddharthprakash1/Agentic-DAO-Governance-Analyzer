@@ -142,7 +142,7 @@ The agent's behavior can be customized through various parameters:
 
 > **Coming Soon**: Replacing the mock API with real-world DAO integrations! 
 
-We're actively working on:
+I am actively working on:
 - Direct integration with major DAO platforms
 - Real-time proposal monitoring
 - Enhanced analysis capabilities
