@@ -18,7 +18,7 @@
 - 🎯 **Smart Voting**: Automated decision-making based on comprehensive analysis
 - 📊 **Detailed Reporting**: Rich logging and analysis reports for transparency
 
-## 🏗️ Architecture
+## 🏗️ Architecture.
 
 ```mermaid
 flowchart TB
