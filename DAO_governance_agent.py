@@ -44,19 +44,66 @@ def analyze_proposal_gemini(state: GovernanceAgentState) -> Dict[str, str]:
     proposal_data = state.get("proposal_data")
     if not proposal_data:
         return {"analysis_report": "No proposal data available for analysis.", "logs": ["Proposal Analyzer: No proposal data received."]}
-    
+
     prompt = f"""
-    You are a DAO governance analyst agent. Analyze the following governance proposal.
-    
+    You are an *expert-level* DAO governance analyst agent. Your goal is to provide the *most detailed and actionable analysis possible* of the following governance proposal to enable informed decision-making.
+
     Proposal Title: {proposal_data['title']}
     Proposal Description: {proposal_data['description']}
-    
-    Respond with a detailed analysis report.
+
+    **Instructions for Analysis:**
+
+    Perform a comprehensive analysis, focusing on the following key categories. For each category, provide specific details, examples, and actionable insights:
+
+    1. **Strategic Alignment & Rationale:**
+        * How well does this proposal align with the DAO's stated mission, values, and long-term strategic goals? Be specific.
+        * Is the rationale for the proposal clearly and convincingly presented? Are there any gaps in the logic?
+        * Are there alternative strategic approaches the DAO should consider instead of this proposal? Briefly suggest 1-2 alternatives if applicable.
+
+    2. **Financial Implications & ROI:**
+        * Conduct a detailed cost-benefit analysis (even if data is limited, make educated estimations based on the proposal description).
+        * Identify all potential costs associated with the proposal (development, implementation, ongoing maintenance, risks, etc.). Be as specific as possible.
+        * Estimate the potential Return on Investment (ROI) or other financial benefits. Quantify benefits where possible (e.g., potential revenue increase, cost savings, token value impact).
+        * Are there any potential financial risks or downsides?  Detail them.
+        * Suggest specific financial metrics that should be tracked to measure the success of this proposal if implemented.
+
+    3. **Technical Feasibility & Implementation:**
+        * Assess the technical feasibility of the proposal. Are there any obvious technical challenges or hurdles?
+        * Evaluate the proposed implementation plan (if any). Is it realistic and well-defined? What's missing?
+        * Identify any potential technical risks, dependencies, or vulnerabilities.
+        * Suggest specific technical due diligence steps the DAO should take before proceeding.
+
+    4. **Security & Risk Assessment:**
+        * Conduct a thorough security risk assessment. Identify potential security vulnerabilities introduced by this proposal (technical, operational, governance-related).
+        * Evaluate the proposal's consideration of security risks (if any). Is it sufficient?
+        * Suggest concrete security mitigation strategies and best practices that should be implemented.
+        * Are there any potential legal or regulatory risks associated with this proposal?
+
+    5. **Community Impact & Governance:**
+        * Analyze the potential impact of this proposal on the DAO community (positive and negative). Consider different user segments and stakeholders.
+        * How does this proposal affect DAO governance processes or voting mechanisms? Are there any governance risks or improvements?
+        * Assess community sentiment towards this type of proposal (if you have prior context or can infer from the description).
+        * Suggest ways to improve community engagement and communication around this proposal to ensure broad understanding and buy-in.
+
+    6. **Actionable Recommendations & Next Steps:**
+        * Based on your comprehensive analysis, provide clear and actionable recommendations to the DAO.  Should they:
+            * **Vote FOR the proposal?** (Under what conditions?)
+            * **Vote AGAINST the proposal?** (Why?)
+            * **Request MORE INFORMATION and revisions before voting?** (Specify exactly what information is needed and what revisions are recommended).
+            * **ABSTAIN from voting at this stage?** (When might abstention be appropriate?)
+        * Suggest concrete next steps the DAO should take based on your recommendations (e.g., "Conduct technical due diligence on Project XYZ's bridging technology," "Request a detailed cost breakdown from the proposer," "Hold a community forum to discuss security risks").
+
+    **Output Format:**
+
+    Structure your analysis report clearly, using headings and bullet points for each category.  Make it easy to read and understand for DAO members with varying levels of technical and financial expertise.  Aim for a report that is as detailed, insightful, and actionable as possible.  Your goal is to be the *ultimate* DAO governance analysis expert.
+
+    Respond with your detailed analysis report.
     """
     response = gemini_pro.invoke([HumanMessage(content=prompt)])
     analysis_report = response.content
-    log_message = f"Proposal Analyzer: Analysis Report for '{proposal_data['title']}': {analysis_report}"
+    log_message = f"Proposal Analyzer: Expert-Level Analysis Report for '{proposal_data['title']}': {analysis_report}"
     return {"analysis_report": analysis_report, "logs": [log_message]}
+
 
 def decide_vote_strategy(state: GovernanceAgentState) -> Dict[str, str]:
     analysis_report = state.get("analysis_report")
