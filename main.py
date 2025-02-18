@@ -21,13 +21,13 @@ class AgentState(TypedDict):
 # --- Gemini Flash Model ---
 gemini_flash = ChatGoogleGenerativeAI(
     model="gemini-2.0-pro-exp-02-05",
-    google_api_key=os.getenv("GOOGLE_API_KEY"),
+  google_api_key=os.getenv("GOOGLE_API_KEY"),
     temperature=0.3  # Adjust temperature as needed
 )
 
 # --- Agent Functions ---
 
-def monitor_traffic() -> Dict[str, float]:
+def monitor_traffic(state: AgentState) -> Dict[str, float]:
     """Simulates monitoring network traffic in VLANs."""
     # In a real application, this would fetch data from a network monitoring system.
     # For simulation, we'll generate random traffic loads for VLANs.
@@ -76,11 +76,10 @@ def decide_vlan_adjustment(state: AgentState) -> Dict[str, Tuple[bool, Optional[
     if "congested" in analysis_report.lower() or "high traffic" in analysis_report.lower():
         decision_message = "Decision Maker: Congestion detected, deciding to adjust VLANs based on analysis."
         logs.append(decision_message)
-        # For simplicity, let's assume Gemini suggests moving users from VLAN_1 to VLAN_3
         vlan_config_commands = [
             "switch1: move user from VLAN_1 to VLAN_3 port 10",
             "switch2: update VLAN assignment for port 10 to VLAN_3"
-        ] # Simulated commands
+        ]
         logs.append(f"Decision Maker: VLAN adjustment commands: {vlan_config_commands}")
         return {"vlan_adjustment_decision": True, "vlan_config_commands": vlan_config_commands, "logs": logs}
     else:
@@ -101,12 +100,11 @@ def configure_vlan(state: AgentState) -> Dict[str, str]:
         config_confirmation = "VLAN Configurator: No VLAN configuration changes needed."
         logs.append(config_confirmation)
 
-    return {"logs": logs} # Return logs only, previous logs are already in state
+    return {"logs": logs}
 
 
 def log_actions(state: AgentState) -> Dict[str, List[str]]:
-    """Logs actions and decisions (already handled within each function in this example)."""
-    # In a more complex setup, this could aggregate logs from different nodes.
+    """Logs actions and decisions."""
     logs = state.get("logs", [])
     return {"logs": logs}
 
@@ -115,7 +113,7 @@ def log_actions(state: AgentState) -> Dict[str, List[str]]:
 builder = StateGraph(AgentState)
 
 builder.add_node("monitor_traffic", monitor_traffic)
-builder.add_node("analyze_traffic", analyze_traffic_gemini) # Gemini powered analysis
+builder.add_node("analyze_traffic", analyze_traffic_gemini)  # Gemini-powered analysis
 builder.add_node("decide_vlan_adjustment", decide_vlan_adjustment)
 builder.add_node("configure_vlan", configure_vlan)
 builder.add_node("log_actions", log_actions)
@@ -125,20 +123,28 @@ builder.set_entry_point("monitor_traffic")
 builder.add_edge("monitor_traffic", "analyze_traffic")
 builder.add_edge("analyze_traffic", "decide_vlan_adjustment")
 builder.add_edge("decide_vlan_adjustment", "configure_vlan")
-builder.add_edge("configure_vlan", "log_actions") # Log after configuration
-builder.add_edge("log_actions", END) # End graph after logging
+builder.add_edge("configure_vlan", "log_actions")  # Log after configuration
+builder.add_edge("log_actions", END)  # End graph after logging
 
-graph = builder.build()
+graph = builder.compile()
 
 # --- Run the Graph ---
-for output in graph.stream({}): # Initial state is empty
+initial_state: AgentState = {
+    "traffic_data": None,
+    "analysis_report": None,
+    "vlan_adjustment_decision": None,
+    "vlan_config_commands": None,
+    "logs": []
+}
+
+for output in graph.stream(initial_state):  # Use the complete initial state
+    print("--- Node Output ---")  # Separator for each node's output
     for key, value in output.items():
-        if key == "log_actions": # Final output is from log_actions node
-            print("\n--- Agent Log ---")
+        print(f"Node '{key}':") # Indicate the node name
+        if key == "log_actions":  # Final output from log_actions node (still print logs nicely)
             for log_entry in value["logs"]:
-                print(f"- {log_entry}")
-        # Optional: Print intermediate steps if you want to see more details
-        # else:
-        #     print(f"Node '{key}': {value}")
+                print(f"  - {log_entry}")
+        else: # For other nodes, print the entire output dictionary
+            print(f"  {value}")
 
 print("\nAgent workflow completed.")
